@@ -1675,7 +1675,7 @@ static int mctp_ctrl_validate_response(struct mctp_ctrl_cmd *cmd,
 {
 	struct mctp_ctrl_resp *rsp;
 
-	if (exp_size <= sizeof(*rsp)) {
+	if (exp_size < sizeof(*rsp)) {
 		warnx("invalid expected response size!");
 		return -EINVAL;
 	}
