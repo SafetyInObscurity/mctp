@@ -3425,9 +3425,10 @@ static int query_peer_properties(struct peer *peer)
 	int rc;
 
 	rc = query_get_peer_msgtypes(peer);
-	if (rc < 0 && peer->ctx->verbose) {
+	if (rc < 0) {
 		errno = -rc;
 		warn("Error getting endpoint types for %s", peer_tostr(peer));
+		return -1;
 	}
 
 	for (unsigned int i = 0; i < peer->num_message_types; i++) {
@@ -3454,7 +3455,7 @@ static int query_peer_properties(struct peer *peer)
 	}
 
 	// TODO: emit property changed? Though currently they are all const.
-	return rc;
+	return 0;
 }
 
 static int peer_neigh_update(struct peer *peer, uint16_t type)
@@ -3536,9 +3537,9 @@ static int setup_added_peer(struct peer *peer)
 
 	rc = publish_peer(peer);
 out:
-	if (rc < 0) {
+	if (rc < 0)
 		remove_peer(peer);
-	}
+
 	return rc;
 }
 
@@ -3975,9 +3976,13 @@ static int method_net_learn_endpoint(sd_bus_message *call, void *data,
 		goto err;
 	}
 
-	query_peer_properties(peer);
+	rc = query_peer_properties(peer);
+	if (rc)
+		goto err;
 
-	publish_peer(peer);
+	rc = publish_peer(peer);
+	if (rc)
+		goto err;
 
 	peer_path = path_from_peer(peer);
 	if (!peer_path)

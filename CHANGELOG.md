@@ -31,6 +31,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
    invalid, having a zeroed control message header. These are now properly
    populated
 
+3. `mctpd` will no longer (incorrectly) reject SetupEndpoint / AssignEndpoint
+   calls for endpoints that do not implement the optional Get Endpoint UUID
+   and Get Vendor Defined Message Support commands.
+
 ### Changed
 
 1. `mctpd`'s `mode` configuration (setting bus owner vs. endpoint roles) is
@@ -44,6 +48,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 3. When running in endpoint mode, `mctpd` will now issue responses to incoming
    Set Endpoint ID commands before performing enumeration on the (bus-owner)
    peer.
+
+4. `mctpd` now requires remote endpoints to implement the Get Message Type
+   Support command, as it is mandatory according to DSP0236. Peers not
+   implementing this will not be published, as enumeration will fail.
 
 ## [2.5] - 2026-02-17
 

@@ -157,6 +157,65 @@ async def test_setup_endpoint_conflict(dbus, mctpd):
     assert eid1 != eid2
 
 
+class CommandUnimplementedEndpoint(Endpoint):
+    """An endpoint where one command (specified via opcode) reports as
+    unimplemented.
+    """
+
+    def __init__(self, opcode, *args, **kwargs):
+        self.unimplemented_opcode = opcode
+        super().__init__(*args, **kwargs)
+
+    async def handle_mctp_control(self, sock, src_addr, msg):
+        flags, opcode = msg[0:2]
+        if opcode != self.unimplemented_opcode:
+            return await super().handle_mctp_control(sock, src_addr, msg)
+        # report not implemented
+        data = bytes([flags & 0x1F, opcode, 0x05])
+        dst_addr = MCTPSockAddr.for_ep_resp(self, src_addr, sock.addr_ext)
+        await sock.send(dst_addr, data)
+
+
+async def test_setup_endpoint_no_get_msg_types(dbus, mctpd):
+    """Test that endpoint enumeration fails if the endpoint does not
+    support the (mandatory) Get Message Type Support command.
+    """
+    iface = mctpd.system.interfaces[0]
+    ep = CommandUnimplementedEndpoint(0x05, iface, bytes([0x1E]))
+    mctpd.network.add_endpoint(ep)
+    mctp = await mctpd_mctp_iface_obj(dbus, iface)
+
+    with pytest.raises(asyncdbus.errors.DBusError):
+        await mctp.call_setup_endpoint(ep.lladdr)
+
+
+async def test_setup_endpoint_no_get_vdm_types(dbus, mctpd):
+    """Test that we can enumerate an endpoint where the (optional)
+    Get Vendor Defined Message Support command is not implemented
+    """
+    iface = mctpd.system.interfaces[0]
+    ep = CommandUnimplementedEndpoint(0x06, iface, bytes([0x1E]))
+    mctpd.network.add_endpoint(ep)
+    mctp = await mctpd_mctp_iface_obj(dbus, iface)
+
+    (eid, net, path, new) = await mctp.call_setup_endpoint(ep.lladdr)
+    assert eid == ep.eid
+
+
+async def test_setup_endpoint_no_get_uuid(dbus, mctpd):
+    """Test that we can enumerate an endpoint where the (optional)
+    Get Endpoint UUID command is not implemented
+    """
+
+    iface = mctpd.system.interfaces[0]
+    ep = CommandUnimplementedEndpoint(0x03, iface, bytes([0x1E]))
+    mctpd.network.add_endpoint(ep)
+    mctp = await mctpd_mctp_iface_obj(dbus, iface)
+
+    (eid, net, path, new) = await mctp.call_setup_endpoint(ep.lladdr)
+    assert eid == ep.eid
+
+
 async def test_remove_endpoint(dbus, mctpd):
     """Test neighbour removal"""
     iface = mctpd.system.interfaces[0]
@@ -1870,14 +1929,9 @@ async def test_query_peer_properties_retry_timeout(nursery, dbus, sysnet):
     ep.lladdr = bytes([0x1C])  # change lladdr to force retry
     ep.timeout_count = 5  # timeout five times before responding
 
-    # call setup_endpoint again, which will trigger query of peer properties
-    (eid, net, path, new) = await mctp.call_setup_endpoint(ep.lladdr)
-
-    # timeout five times does prevent us from getting the correct message types
-    objep = await mctpd_mctp_endpoint_common_obj(dbus, path)
-    objtypes = list(await objep.get_supported_message_types())
-    expected_types = []  # exceeded retry limit, so no types known
-    assert objtypes == expected_types
+    # call setup_endpoint again, which will fail on the types query
+    with pytest.raises(asyncdbus.errors.DBusError):
+        await mctp.call_setup_endpoint(ep.lladdr)
 
     # exit mctpd
     res = await mctpd.stop_mctpd()
