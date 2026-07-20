@@ -53,6 +53,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
    Support command, as it is mandatory according to DSP0236. Peers not
    implementing this will not be published, as enumeration will fail.
 
+5. `mctp`'s command-line help is now more complete, and consistent in its usage
+   of metavariables.
+
 ## [2.5] - 2026-02-17
 
 ### Added
