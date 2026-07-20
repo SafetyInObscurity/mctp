@@ -895,10 +895,10 @@ static int cmd_addr(struct ctx *ctx, int argc, const char **argv)
 	const char *subcmd;
 	if (argc == 2 && !strcmp(argv[1], "help")) {
 		fprintf(stderr, "%s address\n", ctx->top_cmd);
-		fprintf(stderr, "%s address show [IFNAME]\n", ctx->top_cmd);
-		fprintf(stderr, "%s address add <eid> dev <IFNAME>\n",
+		fprintf(stderr, "%s address show [ifname]\n", ctx->top_cmd);
+		fprintf(stderr, "%s address add <eid> dev <ifname>\n",
 			ctx->top_cmd);
-		fprintf(stderr, "%s address del <eid> dev <IFNAME>\n",
+		fprintf(stderr, "%s address del <eid> dev <ifname>\n",
 			ctx->top_cmd);
 		return 255;
 	}
@@ -1126,12 +1126,12 @@ static int cmd_route(struct ctx *ctx, int argc, const char **argv)
 		fprintf(stderr, "%s route show [net <network>]\n",
 			ctx->top_cmd);
 		fprintf(stderr,
-			"%s route add <eid>[-<eid>] via <dev> [mtu <mtu>]\n",
+			"%s route add <eid>[-<eid>] via <ifname> [mtu <mtu>]\n",
 			ctx->top_cmd);
 		fprintf(stderr,
 			"%s route add <eid>[-<eid>] gw <eid> [net <net>] [mtu <mtu>]\n",
 			ctx->top_cmd);
-		fprintf(stderr, "%s route del <eid>[-<eid>] via <dev>\n",
+		fprintf(stderr, "%s route del <eid>[-<eid>] via <ifname>\n",
 			ctx->top_cmd);
 		fprintf(stderr,
 			"%s route del <eid>[-<eid>] gw <eid> [net <net>]\n",
@@ -1336,11 +1336,11 @@ static int cmd_neigh(struct ctx *ctx, int argc, const char **argv)
 		fprintf(stderr, "%s neigh show [dev <network>]\n",
 			ctx->top_cmd);
 		fprintf(stderr,
-			"%s neigh add <eid> dev <device> lladdr <physaddr>\n",
+			"%s neigh add <eid> dev <ifname> lladdr <physaddr>\n",
 			ctx->top_cmd);
 		fprintf(stderr,
 			"        <physaddr> syntax is for example \"1d\" or \"aa:bb:cc:11:22:33\"\n");
-		fprintf(stderr, "%s neigh del <eid> dev <device>\n",
+		fprintf(stderr, "%s neigh del <eid> dev <ifname>\n",
 			ctx->top_cmd);
 		return 255;
 	}

@@ -132,9 +132,6 @@ represents the bus-owner side of a transport.
 
 ```
 NAME                                 TYPE      SIGNATURE RESULT/VALUE FLAGS
-au.com.codeconstruct.MCTP.Interface1 interface -         -            -
-.NetworkId                           property  u         1            emits-change
-.Role                                property  s         "BusOwner"   emits-change writable
 au.com.codeconstruct.MCTP.BusOwner1  interface -         -            -
 .AssignEndpoint                      method    ay        yisb         -
 .AssignEndpointStatic                method    ayy       yisb         -
@@ -248,7 +245,7 @@ reports as a bridge.
 
 Bridge endpoints should be initialised with `AssignEndpoint` instead.
 
-## Network objects: `/au/com/codeconstruct/networks/<net>`
+## Network objects: `/au/com/codeconstruct/mctp1/networks/<net>`
 
 These objects represent MCTP networks which have been added use `mctp link`
 commands. These will be 1:1 with the MCTP networks on the system.
