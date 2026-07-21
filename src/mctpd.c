@@ -9,6 +9,10 @@
 #define _GNU_SOURCE
 #include "config.h"
 
+#if HAVE_LIBCAP
+#include <sys/capability.h>
+#endif
+
 #include <assert.h>
 #include <systemd/sd-bus-vtable.h>
 #include <time.h>
@@ -6347,6 +6351,50 @@ static int endpoint_allocate_eids(struct peer *peer)
 	return 0;
 }
 
+#if HAVE_LIBCAP
+
+static int drop_bind_cap(void)
+{
+	cap_flag_t flags[] = { CAP_EFFECTIVE, CAP_INHERITABLE, CAP_PERMITTED };
+	cap_value_t bind = CAP_NET_BIND_SERVICE;
+	cap_t cap;
+	size_t i;
+	int rc;
+
+	cap = cap_get_proc();
+	if (!cap)
+		return -errno;
+
+	for (i = 0; i < ARRAY_SIZE(flags); i++) {
+		rc = cap_set_flag(cap, flags[i], 1, &bind, CAP_CLEAR);
+		if (rc < 0) {
+			rc = -errno;
+			cap_free(cap);
+			return rc;
+		}
+	}
+
+	rc = cap_set_proc(cap);
+	if (rc < 0) {
+		rc = -errno;
+		cap_free(cap);
+		return rc;
+	}
+
+	rc = cap_free(cap);
+	if (rc < 0)
+		return -errno;
+
+	return 0;
+}
+#else
+
+static int drop_bind_cap(void)
+{
+	return 0;
+}
+#endif
+
 int main(int argc, char **argv)
 {
 	struct ctx ctxi = { 0 }, *ctx = &ctxi;
@@ -6399,6 +6447,13 @@ int main(int argc, char **argv)
 	rc = listen_control_msg(ctx, MCTP_NET_ANY);
 	if (rc < 0) {
 		warnx("Error in listen, returned %s %d", strerror(-rc), rc);
+		return 1;
+	}
+
+	rc = drop_bind_cap();
+	if (rc < 0) {
+		warnx("Error dropping capabilities, returned %s %d",
+		      strerror(-rc), rc);
 		return 1;
 	}
 

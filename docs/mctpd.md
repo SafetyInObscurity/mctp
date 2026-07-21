@@ -500,3 +500,14 @@ match = { path = "/devices/pci0000:00/0000:00:08.3/*" }
 ```
 
 Paths have the `/sys` prefix stripped.
+
+## Capabilities
+
+`mctpd` requires the `CAP_NET_BIND_SERVICE` and `CAP_NET_ADMIN` capabilites to run.
+If the service is not running as root these should be added to the `AmbientCapabilities`
+setting in the service's config.
+If the target platform has the `libcap` library available,
+the `mctpd` process will drop `CAP_NET_BIND_SERVICE` when it is no longer needed.
+
+Because `mctpd` may be exposed to potentially hostile inputs,
+it shouldn't be given more capabilities than necessary.
