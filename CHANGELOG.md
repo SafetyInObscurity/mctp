@@ -56,6 +56,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 5. `mctp`'s command-line help is now more complete, and consistent in its usage
    of metavariables.
 
+6. `mctpd` is now capable of running as a non-root user, with two extra
+   capabilities: `CAP_NET_ADMIN` and `CAP_NET_BIND_SERVICE`, which is now
+   reflected in the example dbus & systemd configuration. If libcap is
+   available, `mctpd` will drop the `BIND_SERVICE` capability after establishing
+   its MCTP control socket.
+
 ## [2.5] - 2026-02-17
 
 ### Added
